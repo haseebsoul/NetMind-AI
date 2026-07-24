@@ -1,0 +1,611 @@
+﻿import { useState, useEffect } from 'react';
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // Mock data for dashboard
+  const [devices] = useState([
+    { id: 1, name: 'Router-01', ip: '192.168.1.1', status: 'online', cpu: 45, latency: 10, uptime: '12d' },
+    { id: 2, name: 'Switch-02', ip: '192.168.1.2', status: 'online', cpu: 30, latency: 7, uptime: '8d' },
+    { id: 3, name: 'Server-03', ip: '192.168.1.3', status: 'warning', cpu: 85, latency: 17, uptime: '30d' },
+    { id: 4, name: 'Firewall-04', ip: '192.168.1.4', status: 'online', cpu: 25, latency: 5, uptime: '20d' },
+    { id: 5, name: 'AP-05', ip: '192.168.1.5', status: 'warning', cpu: 70, latency: 35, uptime: '2d' },
+    { id: 6, name: 'Gateway-06', ip: '192.168.1.6', status: 'online', cpu: 20, latency: 6, uptime: '15d' },
+  ]);
+
+  const [teamMembers] = useState([
+    { id: 1, name: 'Haseeb Khan', role: 'Lead Developer', initials: 'HK', online: true, color: '#6366f1' },
+    { id: 2, name: 'AI Assistant', role: 'Self-Healing Agent', initials: 'AI', online: true, color: '#8b5cf6' },
+    { id: 3, name: 'Network Monitor', role: 'Anomaly Detection', initials: 'NM', online: true, color: '#22c55e' },
+  ]);
+
+  const [alerts] = useState([
+    { id: 1, message: 'Server-03 CPU usage at 85%', severity: 'warning', time: '5:33 PM' },
+    { id: 2, message: 'Unauthorized access attempt blocked', severity: 'critical', time: '4:50 PM' },
+    { id: 3, message: 'AP-05 signal interference detected', severity: 'warning', time: '3:20 PM' },
+  ]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    setTimeout(() => {
+      if (username === 'haseeb' && password === '1234') {
+        setIsLoggedIn(true);
+        localStorage.setItem('netmind_user', JSON.stringify({ username: 'haseeb' }));
+      } else {
+        setError('Invalid credentials. Try: haseeb / 1234');
+        setIsLoading(false);
+      }
+    }, 1000);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('netmind_user');
+  };
+
+  // Check session
+  useEffect(() => {
+    const saved = localStorage.getItem('netmind_user');
+    if (saved) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  // ============================================
+  // LOGIN PAGE
+  // ============================================
+  if (!isLoggedIn) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        background: '#0a0505'
+      }}>
+        <img src="/deadpool.jpg" alt="Deadpool" style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(5, 2, 2, 0.7)',
+          zIndex: 1
+        }} />
+
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '420px',
+          width: '100%'
+        }}>
+          <div style={{
+            background: 'rgba(10, 5, 5, 0.92)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 50, 50, 0.2)',
+            borderRadius: '24px',
+            padding: '40px 35px',
+            boxShadow: '0 30px 80px rgba(0,0,0,0.8)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '8px' }}>🧠</div>
+              <h1 style={{ fontSize: '32px', fontWeight: '700', color: 'white' }}>
+                NetMind <span style={{ background: 'linear-gradient(135deg, #ff0000, #ff4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI</span>
+              </h1>
+              <p style={{ color: '#ff6b6b', fontSize: '14px', marginTop: '4px' }}>AI-Powered Network Operations Center</p>
+            </div>
+
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', color: '#ff6b6b', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>👤 Username</label>
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} style={{
+                  width: '100%', padding: '12px 16px', background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '10px', color: 'white',
+                  fontSize: '15px', outline: 'none'
+                }} placeholder="Enter username" required />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', color: '#ff6b6b', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>🔑 Password</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{
+                  width: '100%', padding: '12px 16px', background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '10px', color: 'white',
+                  fontSize: '15px', outline: 'none'
+                }} placeholder="Enter password" required />
+              </div>
+
+              {error && <div style={{ background: 'rgba(255, 0, 0, 0.1)', border: '1px solid rgba(255, 0, 0, 0.2)', borderRadius: '8px', padding: '10px', color: '#ff6b6b', fontSize: '13px', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
+
+              <button type="submit" disabled={isLoading} style={{
+                width: '100%', padding: '14px', background: 'linear-gradient(135deg, #ff0000, #cc0000)',
+                border: 'none', borderRadius: '10px', color: 'white', fontSize: '16px', fontWeight: '700',
+                cursor: 'pointer', boxShadow: '0 4px 20px rgba(255, 0, 0, 0.3)'
+              }}>
+                {isLoading ? '⏳ Logging in...' : '🚀 Sign In'}
+              </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '16px', color: '#6b6b8d', fontSize: '12px' }}>
+              <span style={{ color: '#ff6b6b' }}>🔑</span> Demo: <strong style={{ color: '#aaa' }}>haseeb</strong> / <strong style={{ color: '#aaa' }}>1234</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // DASHBOARD
+  // ============================================
+  const onlineCount = devices.filter(d => d.status === 'online').length;
+  const warningCount = devices.filter(d => d.status === 'warning').length;
+
+  // Sidebar items
+  const sidebarItems = [
+    { icon: '🏠', label: 'Home' },
+    { icon: '📊', label: 'Dashboard' },
+    { icon: '🕸️', label: 'Network' },
+    { icon: '🧠', label: 'AI Core' },
+    { icon: '🔄', label: 'Self-Healing' },
+    { icon: '👥', label: 'Team' },
+    { icon: '📈', label: 'Reports' },
+    { icon: '⚙️', label: 'Settings' },
+  ];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: isDark ? '#0a0a1a' : '#f5f7fb',
+      display: 'flex',
+      fontFamily: 'Segoe UI, system-ui, sans-serif'
+    }}>
+      {/* ===== SIDEBAR ===== */}
+      <div style={{
+        width: '240px',
+        height: '100vh',
+        background: isDark ? '#1a1a2e' : 'white',
+        borderRight: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+        padding: '24px 16px',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        overflowY: 'auto'
+      }}>
+        <div style={{ marginBottom: '32px', paddingLeft: '8px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: isDark ? 'white' : '#1a1a2e' }}>
+            🧠 NetMind AI
+          </h2>
+          <span style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Network Ops Center</span>
+        </div>
+
+        {sidebarItems.map((item, i) => (
+          <div
+            key={i}
+            className="sidebar-item"
+            style={{
+              padding: '10px 16px',
+              marginBottom: '4px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: i === 1 ? '#6366f1' : isDark ? '#a0a0b8' : '#666',
+              background: i === 1 ? (isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)') : 'transparent',
+              fontWeight: i === 1 ? '600' : '400',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateX(8px) translateY(-2px)';
+              e.target.style.background = isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateX(0) translateY(0)';
+              e.target.style.background = i === 1 ? (isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)') : 'transparent';
+            }}
+          >
+            <span>{item.icon}</span>
+            {item.label}
+            {i === 1 && (
+              <span style={{
+                marginLeft: 'auto',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#6366f1',
+                display: 'inline-block'
+              }} />
+            )}
+          </div>
+        ))}
+
+        <div style={{
+          marginTop: 'auto',
+          borderTop: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+          paddingTop: '16px'
+        }}>
+          <div
+            onClick={handleLogout}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              color: '#ef4444',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateX(5px)';
+              e.target.style.background = 'rgba(239,68,68,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateX(0)';
+              e.target.style.background = 'transparent';
+            }}
+          >
+            🚪 Logout
+          </div>
+        </div>
+      </div>
+
+      {/* ===== MAIN CONTENT ===== */}
+      <div style={{
+        marginLeft: '240px',
+        flex: 1,
+        padding: '24px 32px'
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px'
+        }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: isDark ? 'white' : '#1a1a2e' }}>
+              Dashboard
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>Network Operations Center</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              onClick={() => setIsDark(!isDark)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+                color: isDark ? 'white' : '#1a1a2e',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              {isDark ? '☀️ Light' : '🌙 Dark'}
+            </button>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              background: 'rgba(34,197,94,0.1)',
+              color: '#22c55e',
+              fontSize: '13px',
+              fontWeight: '500'
+            }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+              All Systems Online
+            </div>
+          </div>
+        </div>
+
+        {/* ===== STATS CARDS ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {[
+            { title: 'Total Devices', value: devices.length, icon: '🖥️', change: '+12%', color: '#6366f1' },
+            { title: 'Online', value: onlineCount, icon: '✅', change: '+8%', color: '#22c55e' },
+            { title: 'Warnings', value: warningCount, icon: '⚠️', change: '+3%', color: '#eab308' },
+            { title: 'AI Status', value: 'Active', icon: '🧠', change: '100%', color: '#8b5cf6' }
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className="stat-card"
+              style={{
+                background: isDark ? 'rgba(30,30,60,0.8)' : 'white',
+                borderRadius: '12px',
+                padding: '20px 24px',
+                border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-8px) scale(1.02)';
+                e.target.style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0) scale(1)';
+                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '24px' }}>{stat.icon}</span>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#22c55e',
+                  background: 'rgba(34,197,94,0.1)',
+                  padding: '4px 8px',
+                  borderRadius: '6px'
+                }}>{stat.change}</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? 'white' : '#1a1a2e', marginTop: '8px' }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: '13px', color: '#6b7280' }}>{stat.title}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ===== DEVICE TABLE ===== */}
+        <div style={{
+          background: isDark ? 'rgba(30,30,60,0.8)' : 'white',
+          borderRadius: '12px',
+          padding: '20px',
+          border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+          marginBottom: '24px',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'}
+        onMouseLeave={(e) => e.target.style.boxShadow = 'none'}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: isDark ? 'white' : '#1a1a2e' }}>
+              📋 Network Devices
+            </h3>
+            <span style={{ fontSize: '12px', color: '#6b7280', background: '#f3f4f6', padding: '4px 12px', borderRadius: '12px' }}>
+              {devices.length} devices
+            </span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '10px', color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontWeight: '500' }}>Device</th>
+                  <th style={{ textAlign: 'left', padding: '10px', color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontWeight: '500' }}>IP</th>
+                  <th style={{ textAlign: 'left', padding: '10px', color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontWeight: '500' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '10px', color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontWeight: '500' }}>CPU</th>
+                  <th style={{ textAlign: 'left', padding: '10px', color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontWeight: '500' }}>Latency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {devices.map((device) => (
+                  <tr
+                    key={device.id}
+                    style={{
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'}
+                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                  >
+                    <td style={{ padding: '10px', borderBottom: '1px solid #f1f5f9', color: isDark ? 'white' : '#1a1a2e' }}>
+                      {device.name}
+                    </td>
+                    <td style={{ padding: '10px', borderBottom: '1px solid #f1f5f9', color: '#6b7280' }}>{device.ip}</td>
+                    <td style={{ padding: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        background: device.status === 'online' ? 'rgba(34,197,94,0.1)' : 'rgba(234,179,8,0.1)',
+                        color: device.status === 'online' ? '#22c55e' : '#eab308'
+                      }}>
+                        {device.status === 'online' ? '🟢' : '🟡'} {device.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '60px', height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
+                          <div style={{
+                            width: device.cpu + '%',
+                            height: '100%',
+                            background: device.cpu > 80 ? '#ef4444' : device.cpu > 60 ? '#eab308' : '#22c55e',
+                            borderRadius: '2px',
+                            transition: 'width 0.8s ease'
+                          }} />
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>{device.cpu}%</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px', borderBottom: '1px solid #f1f5f9', color: '#6b7280' }}>{device.latency}ms</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ===== TEAM + ALERTS ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '20px'
+        }}>
+          {/* Team Members */}
+          <div style={{
+            background: isDark ? 'rgba(30,30,60,0.8)' : 'white',
+            borderRadius: '12px',
+            padding: '20px',
+            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'}
+          onMouseLeave={(e) => e.target.style.boxShadow = 'none'}
+          >
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: isDark ? 'white' : '#1a1a2e', marginBottom: '16px' }}>
+              👥 Team Members
+            </h3>
+            {teamMembers.map((member) => (
+              <div
+                key={member.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                  marginBottom: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateX(5px)';
+                  e.target.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateX(0)';
+                  e.target.style.background = isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: member.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '12px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.1) rotate(5deg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1) rotate(0)';
+                }}
+                >
+                  {member.initials}
+                </div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: '500', color: isDark ? 'white' : '#1a1a2e' }}>
+                    {member.name}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>{member.role}</div>
+                </div>
+                <span style={{
+                  marginLeft: 'auto',
+                  fontSize: '10px',
+                  color: member.online ? '#22c55e' : '#6b7280',
+                  background: member.online ? 'rgba(34,197,94,0.1)' : 'rgba(107,114,128,0.1)',
+                  padding: '2px 10px',
+                  borderRadius: '10px'
+                }}>
+                  {member.online ? '🟢 Online' : '⚪ Offline'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Alerts */}
+          <div style={{
+            background: isDark ? 'rgba(30,30,60,0.8)' : 'white',
+            borderRadius: '12px',
+            padding: '20px',
+            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #e5e7eb',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'}
+          onMouseLeave={(e) => e.target.style.boxShadow = 'none'}
+          >
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: isDark ? 'white' : '#1a1a2e', marginBottom: '16px' }}>
+              🔔 Recent Alerts
+            </h3>
+            {alerts.map((alert) => (
+              <div
+                key={alert.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                  marginBottom: '8px',
+                  borderLeft: '3px solid ' + (alert.severity === 'critical' ? '#ef4444' : '#eab308'),
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateX(5px)';
+                  e.target.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateX(0)';
+                  e.target.style.background = isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc';
+                }}
+              >
+                <span
+                  style={{ fontSize: '16px', transition: 'all 0.3s ease' }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.2) rotate(10deg)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1) rotate(0)';
+                  }}
+                >
+                  {alert.severity === 'critical' ? '🔴' : '🟡'}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '13px', color: isDark ? 'white' : '#1a1a2e' }}>{alert.message}</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280' }}>{alert.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,283 @@
+﻿import { useState, useEffect } from 'react';
+import './styles/global.css';
+import './styles/animations.css';
+import Particles from './components/Particles';
+import Dashboard from './pages/Dashboard';
+import NetworkPage from './pages/NetworkPage';
+import AICorePage from './pages/AICorePage';
+import SelfHealingPage from './pages/SelfHealingPage';
+import TeamPage from './pages/TeamPage';
+import ReportsPage from './pages/ReportsPage';
+import SettingsPage from './pages/SettingsPage';
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activePage, setActivePage] = useState('dashboard');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('netmind_user');
+    if (saved) setIsLoggedIn(true);
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    localStorage.setItem('netmind_user', JSON.stringify({ username: 'haseeb' }));
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('netmind_user');
+  };
+
+  const sidebarItems = [
+    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { id: 'network', icon: '🕸️', label: 'Network' },
+    { id: 'ai-core', icon: '🧠', label: 'AI Core' },
+    { id: 'healing', icon: '🔄', label: 'Self-Healing' },
+    { id: 'team', icon: '👥', label: 'Team' },
+    { id: 'reports', icon: '📈', label: 'Reports' },
+    { id: 'settings', icon: '⚙️', label: 'Settings' },
+  ];
+
+  const renderContent = () => {
+    switch (activePage) {
+      case 'dashboard': return <Dashboard />;
+      case 'network': return <NetworkPage />;
+      case 'ai-core': return <AICorePage />;
+      case 'healing': return <SelfHealingPage />;
+      case 'team': return <TeamPage />;
+      case 'reports': return <ReportsPage />;
+      case 'settings': return <SettingsPage />;
+      default: return <Dashboard />;
+    }
+  };
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'url(/spidermen.jpg) center/cover fixed',
+      display: 'flex',
+      fontFamily: 'Segoe UI, sans-serif',
+      position: 'relative'
+    }}>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(10,10,26,0.75)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 0
+      }} />
+      <Particles />
+
+      <div style={{
+        width: '220px',
+        height: '100vh',
+        background: 'rgba(8,8,20,0.7)',
+        backdropFilter: 'blur(30px)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        padding: '24px 12px',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 2,
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ padding: '0 8px', marginBottom: '32px' }}>
+          <div style={{ fontSize: '20px', fontWeight: '800', color: 'white' }}>🧠 NetMind AI</div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase' }}>Network Ops Center</div>
+        </div>
+        <nav style={{ flex: 1 }}>
+          {sidebarItems.map(item => (
+            <div
+              key={item.id}
+              onClick={() => setActivePage(item.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '11px 16px', borderRadius: '10px', cursor: 'pointer',
+                marginBottom: '2px', fontSize: '14px', fontWeight: '500',
+                transition: 'all 0.2s',
+                color: activePage === item.id ? '#818cf8' : 'rgba(255,255,255,0.5)',
+                background: activePage === item.id ? 'rgba(99,102,241,0.15)' : 'transparent',
+                border: activePage === item.id ? '1px solid rgba(99,102,241,0.2)' : '1px solid transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (activePage !== item.id) {
+                  e.target.style.transform = 'translateX(6px)';
+                  e.target.style.color = 'rgba(255,255,255,0.7)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activePage !== item.id) {
+                  e.target.style.transform = 'translateX(0)';
+                  e.target.style.color = 'rgba(255,255,255,0.5)';
+                }
+              }}
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </nav>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px' }}>
+          <div onClick={handleLogout} style={{
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '11px 16px', borderRadius: '10px', cursor: 'pointer',
+            color: '#f87171', fontSize: '14px'
+          }}>
+            <span>🚪</span><span>Logout</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        marginLeft: '220px',
+        flex: 1,
+        padding: '24px 32px',
+        overflowX: 'hidden',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: '24px', flexWrap: 'wrap', gap: '12px'
+        }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>
+              {sidebarItems.find(i => i.id === activePage)?.label || 'Dashboard'}
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}>
+              Network Operations Center
+            </p>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '6px 14px', borderRadius: '20px',
+            background: 'rgba(34,197,94,0.12)',
+            color: '#22c55e', fontSize: '13px', fontWeight: '500',
+            border: '1px solid rgba(34,197,94,0.1)'
+          }}>
+            <span style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              background: '#22c55e', display: 'inline-block',
+              animation: 'pulse 1.5s infinite'
+            }} /> All Systems Online
+          </div>
+        </div>
+        {renderContent()}
+      </div>
+    </div>
+  );
+}
+
+function LoginPage({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setTimeout(() => {
+      if (username === 'haseeb' && password === '1234') {
+        onLogin();
+      } else {
+        setError('Invalid credentials. Try: haseeb / 1234');
+        setIsLoading(false);
+      }
+    }, 1000);
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      background: '#0a0505'
+    }}>
+      <img src="/deadpool.jpg" alt="Deadpool" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        zIndex: 0
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(5,2,2,0.7)',
+        zIndex: 1
+      }} />
+
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        maxWidth: '420px',
+        width: '100%',
+        background: 'rgba(10,5,5,0.85)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '24px',
+        padding: '40px 35px',
+        boxShadow: '0 30px 80px rgba(0,0,0,0.8)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <div style={{ fontSize: '48px' }}>🧠</div>
+          <h1 style={{ fontSize: '32px', fontWeight: '700', color: 'white' }}>
+            NetMind <span style={{ background: 'linear-gradient(135deg, #ff0000, #ff4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI</span>
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>AI-Powered Network Operations Center</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>👤 Username</label>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} style={{
+              width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white',
+              fontSize: '15px', outline: 'none'
+            }} placeholder="Enter username" required />
+          </div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>🔑 Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{
+              width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white',
+              fontSize: '15px', outline: 'none'
+            }} placeholder="Enter password" required />
+          </div>
+          {error && <div style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.2)', borderRadius: '8px', padding: '10px', color: '#ff6b6b', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
+          <button type="submit" disabled={isLoading} style={{
+            width: '100%', padding: '14px', background: 'linear-gradient(135deg, #ff0000, #cc0000)',
+            border: 'none', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '700',
+            cursor: 'pointer', boxShadow: '0 4px 20px rgba(255,0,0,0.3)'
+          }}>
+            {isLoading ? '⏳ Logging in...' : '🚀 Sign In'}
+          </button>
+        </form>
+        <div style={{ textAlign: 'center', marginTop: '16px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>
+          <span style={{ color: '#ff6b6b' }}>🔑</span> Demo: <strong style={{ color: 'rgba(255,255,255,0.6)' }}>haseeb</strong> / <strong style={{ color: 'rgba(255,255,255,0.6)' }}>1234</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;

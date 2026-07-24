@@ -1,0 +1,29 @@
+﻿import { useState, useEffect } from 'react';
+import NetworkTopology from './components/network/NetworkTopology';
+
+// ... (keep your existing App.jsx code, just add the topology section)
+
+// Add this section right after the device table and before Team + Alerts:
+
+{/* ===== NETWORK TOPOLOGY ===== */}
+<div style={{
+  marginBottom: '24px'
+}}>
+  <h3 style={{ 
+    fontSize: '16px', 
+    fontWeight: '600', 
+    color: isDark ? 'white' : '#1a1a2e',
+    marginBottom: '12px'
+  }}>
+    🕸️ Network Topology
+  </h3>
+  <NetworkTopology 
+    devices={devices} 
+    isDark={isDark} 
+    onDeviceSelect={(device) => {
+      if (device) {
+        alert(Device: \nStatus: \nIP: \nCPU: %\nLatency: ms);
+      }
+    }}
+  />
+</div>
