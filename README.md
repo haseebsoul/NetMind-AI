@@ -42,6 +42,7 @@ Open http://localhost:5173. API docs are at http://127.0.0.1:8000/docs.
 - `POST /auth/register` — create a standard user account.
 - `POST /auth/login` — OAuth2 password form; returns a JWT.
 - `GET /auth/me` — authenticated identity.
+- `POST /auth/change-password` — verify the current password and set a new password.
 - `GET /devices` — current OS network interfaces and byte counters.
 - `GET /ai/recommend` — transparent rule-based link-speed observation.
 - `POST /heal/{id}` — records a recovery request; does not alter OS adapters.
