@@ -49,7 +49,9 @@ def test_register_and_login(client):
     assert created.status_code == 201
     assert created.json()["role"] == "user"
     token = login(client, username, "a-long-test-password")
-    assert client.get("/auth/me", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+    headers = {"Authorization": f"Bearer {token}"}
+    assert client.get("/auth/me", headers=headers).status_code == 200
+    assert client.get("/admin/users", headers=headers).status_code == 403
 
 
 def test_websocket_requires_token_and_streams_devices(client):
