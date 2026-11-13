@@ -22,7 +22,7 @@ cd frontend
 npm install
 npm run dev
 ```
-5. Open http://localhost:5173. API health: http://localhost:8000/api/health.
+5. Open http://localhost:5174. API health: http://localhost:8001/api/health.
 
 The first backend startup creates the administrator specified by BOOTSTRAP_ADMIN_* only if that username/email does not already exist. Keep the root .env private. Never paste credentials into source files or commit them.
 
