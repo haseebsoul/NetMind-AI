@@ -2,25 +2,20 @@ services:
   backend:
     build: ./backend
     environment:
-      ENVIRONMENT: development
-      NETMIND_SECRET_KEY: ${NETMIND_SECRET_KEY:-local-compose-change-this-secret}
-      NETMIND_BOOTSTRAP_USERNAME: ${NETMIND_BOOTSTRAP_USERNAME:-haseeb}
-      NETMIND_BOOTSTRAP_PASSWORD: ${NETMIND_BOOTSTRAP_PASSWORD:-1234}
-      NETMIND_BOOTSTRAP_EMAIL: ${NETMIND_BOOTSTRAP_EMAIL:-admin@localhost}
-      DATABASE_URL: sqlite:////data/netmind.db
+      NODE_ENV: production
+      PORT: 8000
+      MONGODB_URI: ${MONGODB_URI:?Set MONGODB_URI in your .env file}
+      MONGODB_DB: netmind_ai
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your .env file}
       CORS_ORIGINS: http://localhost:5173,http://localhost:8080
-    volumes:
-      - netmind-data:/data
     ports:
       - "8000:8000"
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: http://localhost:8000
+        VITE_API_URL: http://localhost:8000/api
     ports:
       - "8080:80"
     depends_on:
       - backend
-volumes:
-  netmind-data:
