@@ -318,17 +318,17 @@ async def reset_simulation(device_id: int, user: User = Depends(get_current_user
 
 
 @app.get("/api/activity")
-def activity(limit: int = 50, _: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def activity(limit: int = 50, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     limit = min(max(limit, 1), 200)
-    rows = db.scalars(select(Activity).order_by(Activity.timestamp.desc()).limit(limit)).all()
+    rows = db.scalars(select(Activity).where((Activity.actor == user.username) | (Activity.actor == "system")).order_by(Activity.timestamp.desc()).limit(limit)).all()
     return [{"id": r.id, "timestamp": r.timestamp.isoformat(), "actor": r.actor, "event": r.event,
              "message": r.message, "severity": r.severity} for r in rows]
 
 
 @app.get("/api/reports/summary")
-def reports(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def reports(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     devices = network_interfaces()
-    rows = db.scalars(select(Activity).order_by(Activity.timestamp.desc()).limit(500)).all()
+    rows = db.scalars(select(Activity).where((Activity.actor == user.username) | (Activity.actor == "system")).order_by(Activity.timestamp.desc()).limit(500)).all()
     return {"generated_at": datetime.now(timezone.utc).isoformat(), "adapter_count": len(devices),
             "online": sum(d["status"] == "online" for d in devices),
             "offline": sum(d["status"] == "offline" for d in devices),
@@ -336,8 +336,8 @@ def reports(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
 
 
 @app.get("/api/rewards")
-def rewards(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    rows = db.scalars(select(Activity)).all()
+def rewards(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Activity).where(Activity.actor == user.username)).all()
     recoveries = sum(r.event == "adapter.recovery_requested" for r in rows)
     simulations = sum(r.event == "simulation.adapter_offline" for r in rows)
     points = recoveries * 10 + simulations * 5
