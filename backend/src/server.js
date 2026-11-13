@@ -1,4 +1,5 @@
-import 'dotenv/config'; import 'express-async-errors'; import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import rateLimit from 'express-rate-limit'; import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv'; import 'express-async-errors';
+dotenv.config({path:new URL('../../.env',import.meta.url)}); import express from 'express'; import cors from 'cors'; import helmet from 'helmet'; import rateLimit from 'express-rate-limit'; import bcrypt from 'bcryptjs';
 import {connectDB} from './config/db.js'; import api from './routes/api.js'; import {errorHandler} from './middleware/security.js'; import {User} from './models/index.js';
 const app=express(); app.set('trust proxy',1); app.use(helmet()); app.use(cors({origin:(process.env.CORS_ORIGINS||'http://localhost:5173').split(',').map(x=>x.trim()),credentials:true})); app.use(express.json({limit:'1mb'})); app.use('/api/auth',rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:true,legacyHeaders:false})); app.use('/api',api); app.use(errorHandler);
 await connectDB();
