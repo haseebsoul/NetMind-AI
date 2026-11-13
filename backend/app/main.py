@@ -14,6 +14,7 @@ from typing import Any
 
 import jwt
 import psutil
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -23,6 +24,7 @@ from sqlalchemy import Boolean, DateTime, Integer, String, Text, create_engine, 
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR.parent / '.env')
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{APP_DIR / 'netmind.db'}")
 SECRET_KEY = os.getenv("NETMIND_SECRET_KEY", "dev-only-change-this-secret-before-deployment")
 if ENVIRONMENT == "production" and SECRET_KEY == "dev-only-change-this-secret-before-deployment":
