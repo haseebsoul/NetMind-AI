@@ -1,167 +1,99 @@
-﻿import { useState, useEffect, useRef } from 'react';
-import Sidebar from './components/sidebar/Sidebar';
-import Dashboard from './pages/Dashboard';
-import NetworkPage from './pages/NetworkPage';
-import AICorePage from './pages/AICorePage';
-import SelfHealingPage from './pages/SelfHealingPage';
-import TeamPage from './pages/TeamPage';
-import ReportsPage from './pages/ReportsPage';
-import SettingsPage from './pages/SettingsPage';
-import NetworkStatusPage from './pages/NetworkStatusPage';
-import Particles from './components/Particles';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import './App.css';
-import './styles/global.css';
-import './styles/animations.css';
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [activePage, setActivePage] = useState('dashboard');
-  const [isDark, setIsDark] = useState(false);
-  const [devices, setDevices] = useState([]);
-  const ws = useRef(null);
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const navItems = [
+  ['overview','Overview','◫'],['monitoring','Monitoring','⌁'],['threats','Threats & alerts','⚑'],
+  ['activity','Activity log','◷'],['manage','Device management','⌘'],['rewards','Operator rewards','✳'],['reports','Reports','▤'],['account','Account','◎']
+];
+const fmt = n => Number(n || 0).toLocaleString();
+const bytes = n => { const v=Number(n||0); if(v<1024)return v+' B'; const units=['KB','MB','GB','TB']; let x=v/1024,i=0; while(x>=1024&&i<3){x/=1024;i++} return x.toFixed(1)+' '+units[i]; };
 
-  useEffect(() => {
-    const saved = localStorage.getItem('netmind_user');
-    if (saved) setIsLoggedIn(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    ws.current = new WebSocket('ws://localhost:8000/ws');
-    ws.current.onmessage = (event) => {
-      try { setDevices(JSON.parse(event.data)); } catch (e) {}
-    };
-    ws.current.onerror = () => console.warn('WebSocket error');
-    return () => { if (ws.current) ws.current.close(); };
-  }, [isLoggedIn]);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    localStorage.setItem('netmind_user', JSON.stringify({ username: 'haseeb' }));
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('netmind_user');
-    if (ws.current) ws.current.close();
-  };
-
-  const toggleDark = () => setIsDark(!isDark);
-
-  const renderPage = () => {
-    switch (activePage) {
-      case 'dashboard': return <Dashboard />;
-      case 'network': return <NetworkPage />;
-      case 'ai-core': return <AICorePage />;
-      case 'healing': return <SelfHealingPage />;
-      case 'team': return <TeamPage />;
-      case 'reports': return <ReportsPage />;
-      case 'network-manager': return <NetworkStatusPage />;
-      case 'settings': return <SettingsPage isDark={isDark} toggleDark={toggleDark} />;
-      default: return <Dashboard />;
-    }
-  };
-
-  // LOGIN PAGE (Light themed)
-  if (!isLoggedIn) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        background: '#f0f4f8'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 100%)',
-          zIndex: 0
-        }} />
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          maxWidth: '420px',
-          width: '100%',
-          background: 'rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '40px 35px',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <div style={{ fontSize: '48px' }}>🧠</div>
-            <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1a1a2e' }}>NetMind AI</h1>
-            <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '14px' }}>AI-Powered Network Operations Center</p>
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); const u = e.target.username.value; const p = e.target.password.value; if (u === 'haseeb' && p === '1234') handleLogin(); else alert('Invalid credentials'); }}>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: 'rgba(0,0,0,0.6)', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Username</label>
-              <input name="username" type="text" style={{ width: '100%', padding: '12px 16px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '12px', color: '#1a1a2e', fontSize: '15px', outline: 'none' }} placeholder="Enter username" required />
-            </div>
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', color: 'rgba(0,0,0,0.6)', fontSize: '12px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Password</label>
-              <input name="password" type="password" style={{ width: '100%', padding: '12px 16px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '12px', color: '#1a1a2e', fontSize: '15px', outline: 'none' }} placeholder="Enter password" required />
-            </div>
-            <button type="submit" style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #4f46e5, #6366f1)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 20px rgba(79,70,229,0.3)' }}>Sign In</button>
-          </form>
-          <div style={{ textAlign: 'center', marginTop: '16px', color: 'rgba(0,0,0,0.3)', fontSize: '12px' }}>Demo: <strong style={{ color: 'rgba(0,0,0,0.6)' }}>haseeb</strong> / <strong style={{ color: 'rgba(0,0,0,0.6)' }}>1234</strong></div>
-        </div>
-      </div>
-    );
-  }
-
-  // DASHBOARD LAYOUT - Light theme
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 100%)',
-      display: 'flex',
-      fontFamily: 'Segoe UI, sans-serif',
-      position: 'relative'
-    }}>
-      <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} />
-      <div style={{
-        marginLeft: '220px',
-        flex: 1,
-        padding: '24px 32px',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginBottom: '24px', flexWrap: 'wrap', gap: '12px'
-        }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a1a2e' }}>
-              {activePage.charAt(0).toUpperCase() + activePage.slice(1).replace('-', ' ')}
-            </h1>
-            <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px' }}>Network Operations Center</p>
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            padding: '6px 14px', borderRadius: '20px',
-            background: 'rgba(34,197,94,0.1)',
-            color: '#16a34a', fontSize: '13px', fontWeight: '500',
-            border: '1px solid rgba(34,197,94,0.15)'
-          }}>
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              background: '#22c55e', display: 'inline-block',
-              animation: 'pulse 1.5s infinite'
-            }} /> All Systems Online
-          </div>
-        </div>
-        {renderPage()}
-      </div>
-    </div>
-  );
+function readToken(){ return localStorage.getItem('netmind_token') || ''; }
+async function api(path, options={}) {
+  const headers = { ...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers||{}) };
+  if(readToken()) headers.Authorization = 'Bearer '+readToken();
+  const response = await fetch(API+path,{...options,headers});
+  const data = await response.json().catch(()=>({detail:'Unexpected server response'}));
+  if(!response.ok) throw new Error(data.detail || 'Request failed');
+  return data;
 }
 
-export default App;
+function Brand(){return <Link className="brand" to="/"><span className="brand-mark">N</span><span>NETMIND<span className="brand-ai"> AI</span><small>NETWORK INTELLIGENCE</small></span></Link>}
+function Landing(){
+ return <div className="landing">
+  <header className="site-nav wrap"><Brand/><nav><a href="#platform">Platform</a><a href="#capabilities">Capabilities</a><a href="#workflow">How it works</a></nav><div className="nav-actions"><Link className="text-link" to="/login">Sign in</Link><Link className="btn btn-lime" to="/register">Get started <span>↗</span></Link></div></header>
+  <main>
+   <section className="hero wrap"><div className="hero-copy"><div className="eyebrow"><i/> AUTONOMOUS NETWORK OPERATIONS</div><h1>Networks that<br/><em>think ahead.</em></h1><p className="hero-lead">One intelligent command center to see every connection, understand every anomaly, and respond with confidence.</p><div className="hero-actions"><Link className="btn btn-lime" to="/register">Launch your workspace ↗</Link><a className="btn btn-ghost" href="#platform">Explore platform ↓</a></div><div className="hero-proof"><span className="proof-dot"/> REAL-TIME TELEMETRY <b/> BUILT FOR OPERATORS</div></div>
+    <div className="hero-visual"><div className="visual-glow"/><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="core-node"><span>NM</span><small>CORE</small></div><div className="node node-a"><i/>WI-FI <b>ONLINE</b></div><div className="node node-b"><i/>ETHERNET <b>ONLINE</b></div><div className="node node-c"><i/>GATEWAY <b>LIVE</b></div><div className="telemetry-card"><span>LIVE TELEMETRY</span><strong>99.98<small>%</small></strong><div className="mini-bars">{Array.from({length:24},(_,i)=><i key={i} style={{height:(12+(i*17%33))+'px'}}/>)}</div></div><div className="visual-caption">NETWORK TOPOLOGY / 01</div></div>
+   </section>
+   <section className="trust-strip"><div className="wrap trust-inner"><span>VISIBILITY WITHOUT BLIND SPOTS</span><b>ADAPTER INTELLIGENCE</b><b>LIVE TELEMETRY</b><b>OPERATOR CONTROL</b><b>EVENT HISTORY</b></div></section>
+   <section id="platform" className="section wrap"><div className="section-kicker">THE PLATFORM / 01</div><div className="section-heading"><h2>Clarity at every<br/><em>layer of your network.</em></h2><p>From a single workstation to a distributed environment, NetMind brings operational signals into one focused view.</p></div><div className="feature-grid"><article className="feature feature-large"><span className="feature-number">01 / OBSERVE</span><div className="feature-art topology-art"><div className="topology-center">NM</div><i/><i/><i/><i/><i/></div><h3>See the whole picture.</h3><p>Inspect live adapters, addresses, link speed and traffic counters without switching between tools.</p></article><article className="feature"><span className="feature-number">02 / UNDERSTAND</span><div className="feature-art signal-art"><div className="signal-line">{Array.from({length:18},(_,i)=><i key={i} style={{height:(12+(i*13%48))+'px'}}/>)}</div><span>TELEMETRY STREAM</span></div><h3>Signals, not noise.</h3><p>Surface operational changes and keep a durable activity trail for every operator action.</p></article><article className="feature"><span className="feature-number">03 / RESPOND</span><div className="feature-art terminal-art"><span>$ netmind inspect --live</span><b>✓ adapter telemetry received</b><b>✓ event stream connected</b><b className="terminal-dim">_ awaiting operator action</b></div><h3>Act with confidence.</h3><p>Record recovery requests and safely test response workflows with non-destructive simulations.</p></article></div></section>
+   <section id="capabilities" className="capability-band"><div className="wrap capability-inner"><div><div className="section-kicker">BUILT FOR REAL OPERATIONS</div><h2>Powerful underneath.<br/><em>Simple up front.</em></h2></div><div className="capability-list"><div><b>01</b><span><strong>Live adapter monitoring</strong><small>OS-reported interface state and byte counters</small></span><i>↗</i></div><div><b>02</b><span><strong>Secure operator access</strong><small>JWT sessions, password hashing and admin roles</small></span><i>↗</i></div><div><b>03</b><span><strong>Persistent event history</strong><small>Auditable actions and operational events</small></span><i>↗</i></div><div><b>04</b><span><strong>Safe simulation mode</strong><small>Test workflows without disabling physical adapters</small></span><i>↗</i></div></div></div></section>
+   <section id="workflow" className="section wrap workflow"><div className="section-kicker">A CLEARER WAY TO OPERATE / 03</div><div className="section-heading"><h2>From signal to<br/><em>decisive action.</em></h2></div><div className="steps"><div><b>01</b><h3>Connect</h3><p>Run the local agent API and discover interfaces reported by the operating system.</p></div><div><b>02</b><h3>Understand</h3><p>Follow live status, throughput counters and a timestamped activity stream.</p></div><div><b>03</b><h3>Respond</h3><p>Record operator actions, simulate faults safely and review what happened.</p></div></div></section>
+   <section className="final-cta wrap"><div><div className="section-kicker">YOUR NETWORK. ONE COMMAND CENTER.</div><h2>Make every connection<br/><em>count.</em></h2></div><Link className="btn btn-lime" to="/register">Create your workspace ↗</Link></section>
+  </main><footer className="site-footer wrap"><Brand/><span>© {new Date().getFullYear()} NETMIND AI. BUILT FOR NETWORK OPERATORS.</span><a href="#top">BACK TO TOP ↑</a></footer>
+ </div>
+}
+
+function AuthPage({mode}) {
+ const nav=useNavigate(), [form,setForm]=useState({username:'',email:'',password:''}), [error,setError]=useState(''), [busy,setBusy]=useState(false);
+ const submit=async e=>{e.preventDefault();setError('');setBusy(true);try{
+  if(mode==='register'){await api('/auth/register',{method:'POST',body:JSON.stringify(form)});setError('Account created. Sign in to continue.');}
+  else {const body=new URLSearchParams({username:form.username,password:form.password});const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});const d=await r.json();if(!r.ok)throw new Error(d.detail||'Sign in failed');localStorage.setItem('netmind_token',d.access_token);const u=await api('/auth/me');localStorage.setItem('netmind_user',JSON.stringify(u));nav('/app/overview');}
+ }catch(err){setError(err.message)}finally{setBusy(false)}};
+ return <div className="auth-page"><div className="auth-aside"><Brand/><div><div className="eyebrow"><i/> NETWORK INTELLIGENCE PLATFORM</div><h1>Operate with<br/><em>perspective.</em></h1><p>Live network visibility, clear operational context, and a record of every action.</p></div><span>NETMIND AI / SECURE WORKSPACE</span></div><div className="auth-main"><Link className="back-home" to="/">← Back to website</Link><form className="auth-form" onSubmit={submit}><div className="section-kicker">{mode==='login'?'WELCOME BACK':'GET STARTED'}</div><h2>{mode==='login'?'Sign in to NetMind':'Create your account'}</h2><p>{mode==='login'?'Access your network operations workspace.':'Set up an operator account to begin monitoring.'}</p>{mode==='register'&&<label>Email address<input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} required placeholder="you@company.com"/></label>}<label>Username<input value={form.username} onChange={e=>setForm({...form,username:e.target.value})} required minLength="3" placeholder="Your username"/></label><label>Password<input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} required minLength={mode==='register'?10:1} placeholder={mode==='register'?'At least 10 characters':'Your password'}/></label>{error&&<div className="form-message">{error}</div>}<button className="btn btn-lime btn-full" disabled={busy}>{busy?'Please wait…':mode==='login'?'Sign in →':'Create account →'}</button><div className="auth-switch">{mode==='login'?'New to NetMind?':'Already registered?'} <Link to={mode==='login'?'/register':'/login'}>{mode==='login'?'Create an account':'Sign in'}</Link></div></form></div></div>
+}
+
+function Stat({label,value,meta,tone='lime'}){return <div className="stat-card"><span>{label}</span><strong className={tone}>{value}</strong><small>{meta}</small></div>}
+function Shell({user,children}) {
+ const nav=useNavigate(); const items=user?.role==='admin'?[...navItems,['admin','Administration','⚙']]:navItems; const logout=()=>{localStorage.removeItem('netmind_token');localStorage.removeItem('netmind_user');nav('/')};
+ return <div className="app-shell"><aside className="app-sidebar"><Brand/><div className="side-label">WORKSPACE</div><nav>{items.map(([id,label,icon])=><NavLink key={id} to={'/app/'+id} end={id==='overview'} className={({isActive})=>'side-link'+(isActive?' active':'')}><span>{icon}</span>{label}</NavLink>)}</nav><div className="sidebar-bottom"><div className="connection-pill"><i/> API CONNECTED</div><div className="user-mini"><div className="avatar">{(user?.username||'U').slice(0,1).toUpperCase()}</div><span><b>{user?.username}</b><small>{user?.role||'operator'}</small></span><button onClick={logout} title="Sign out">↗</button></div></div></aside><main className="app-main"><header className="app-topbar"><div><span>NETMIND / WORKSPACE</span><b>{navItems.find(x=>location.pathname.endsWith(x[0]))?.[1]||'Overview'}</b></div><div className="topbar-right"><span className="live-indicator"><i/> LIVE SYSTEM</span><span className="top-avatar">{(user?.username||'U').slice(0,1).toUpperCase()}</span></div></header>{children}</main></div>
+}
+function PageTitle({eyebrow,title,description,action}){return <div className="page-title"><div><div className="section-kicker">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div>{action}</div>}
+function Overview({devices,events,recommendation,onAction,refreshing,chartData}) {
+ const online=devices.filter(d=>d.status==='online').length, offline=devices.length-online;
+ const chart=chartData;
+ return <><PageTitle eyebrow="COMMAND CENTER / 01" title="Network overview" description="Your infrastructure at a glance. Live telemetry from this machine." action={<button className="btn btn-outline" onClick={refreshing}>↻ Refresh data</button>}/><div className="stats-grid"><Stat label="DISCOVERED ADAPTERS" value={devices.length} meta="OS-reported interfaces"/><Stat label="ONLINE" value={online} meta="Currently reporting up" tone="green"/><Stat label="OFFLINE / SIMULATED" value={offline} meta="Includes simulation overrides" tone="orange"/><Stat label="RECENT EVENTS" value={events.length} meta="Persisted activity records"/></div><div className="dashboard-grid"><section className="panel traffic-panel"><div className="panel-head"><div><span className="section-kicker">NETWORK TELEMETRY</span><h3>Traffic overview</h3></div><span className="live-indicator"><i/> LIVE</span></div><div className="chart-legend"><span><i className="legend-rx"/> RX KB/s</span><span><i className="legend-tx"/> TX KB/s</span></div><div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chart}><defs><linearGradient id="rxFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b6ff00" stopOpacity=".22"/><stop offset="100%" stopColor="#b6ff00" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#24242a" vertical={false}/><XAxis dataKey="time" tick={{fill:'#777780',fontSize:11}} axisLine={false} tickLine={false}/><YAxis tick={{fill:'#777780',fontSize:11}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:'#151519',border:'1px solid #303038',borderRadius:10,color:'#fff'}}/><Area type="monotone" dataKey="rx" stroke="#b6ff00" fill="url(#rxFill)" strokeWidth={2}/><Area type="monotone" dataKey="tx" stroke="#fb923c" fill="transparent" strokeWidth={2}/></AreaChart></ResponsiveContainer></div><div className="chart-foot"><span>Rates are sampled from OS byte counters</span><span>2 SEC UPDATE CYCLE</span></div></section><section className="panel recommendation"><span className="section-kicker">NETMIND INSIGHT</span><div className="insight-icon">✳</div><h3>{recommendation?.recommendation||'Collecting network signals'}</h3><p>{recommendation?.reason||'The system will summarize active adapter information here.'}</p><div className="insight-foot">RULE-BASED OBSERVATION <span>NOT GENERATIVE AI</span></div></section></div><section className="panel"><div className="panel-head"><div><span className="section-kicker">INTERFACE INVENTORY</span><h3>Connected adapters</h3></div><NavLink className="panel-link" to="/app/monitoring">View all ↗</NavLink></div><DeviceTable devices={devices.slice(0,5)} onAction={onAction}/></section><section className="panel"><div className="panel-head"><div><span className="section-kicker">AUDIT TRAIL</span><h3>Recent activity</h3></div><NavLink className="panel-link" to="/app/activity">Full activity ↗</NavLink></div><EventList events={events.slice(0,4)}/></section></>
+}
+function DeviceTable({devices,onAction}){return <div className="table-scroll"><table><thead><tr><th>INTERFACE</th><th>IP ADDRESS</th><th>LINK SPEED</th><th>TRAFFIC RX / TX</th><th>STATE</th><th>ACTION</th></tr></thead><tbody>{devices.map(d=><tr key={d.id}><td><b className="device-name"><i/> {d.name}</b><small>{d.simulated?'SIMULATED OVERRIDE':d.real?'REAL ADAPTER':'SIMULATED'}</small></td><td className="mono">{d.ip||'—'}</td><td>{d.speed_mbps?d.speed_mbps+' Mbps':'—'}</td><td className="mono">{bytes(d.rx_bytes_per_sec)}/s <span className="muted">/</span> {bytes(d.tx_bytes_per_sec)}/s</td><td><span className={'status status-'+d.status}>{d.status}</span></td><td><button className="table-action" onClick={()=>onAction(d,'heal')}>Request recovery</button><button className="table-action subtle" onClick={()=>onAction(d,'simulate')}>Simulate</button></td></tr>)}</tbody></table>{!devices.length&&<div className="empty-state">No interfaces were returned by the operating system.</div>}</div>}
+function EventList({events}){return <div className="event-list">{events.map(e=><div className="event-row" key={e.id}><i className={'event-dot '+e.severity}/><div><b>{e.event.replaceAll('.',' / ')}</b><p>{e.message}</p></div><time>{new Date(e.timestamp).toLocaleString()}</time></div>)}{!events.length&&<div className="empty-state">No activity recorded yet.</div>}</div>}
+function Workspace({user}) {
+ const [devices,setDevices]=useState([]),[events,setEvents]=useState([]),[recommendation,setRecommendation]=useState(null),[history,setHistory]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[tick,setTick]=useState(null);
+ const load=useCallback(async()=>{try{const [d,e,r]=await Promise.all([api('/devices'),api('/api/activity?limit=30'),api('/ai/recommend')]);setDevices(d);setHistory(prev=>[...prev.slice(-11),{time:new Date().toLocaleTimeString(),rx:Math.round(d.reduce((a,x)=>a+(x.rx_bytes_per_sec||0),0)/1024),tx:Math.round(d.reduce((a,x)=>a+(x.tx_bytes_per_sec||0),0)/1024)}]);setEvents(e);setRecommendation(r);setError('');setTick(new Date())}catch(err){setError(err.message)}finally{setLoading(false)}},[]);
+ useEffect(()=>{load();const id=setInterval(load,8000);return()=>clearInterval(id)},[load]);
+ useEffect(()=>{const token=readToken();if(!token)return;const base=API.replace(/^http/,'ws');const ws=new WebSocket(base+'/ws?token='+encodeURIComponent(token));ws.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.type==='devices')setDevices(d.devices)}catch{}};return()=>ws.close()},[]);
+ const action=async(d,kind)=>{try{const path=kind==='heal'?'/heal/':'/simulate/failure/';const r=await api(path+d.id,{method:'POST',body:kind==='heal'?JSON.stringify({}):undefined});await load();setError(r.message)}catch(e){setError(e.message)}};
+ const segment=location.pathname.split('/').pop(); const path=segment==='app'?'overview':segment;
+ return <div className="workspace-content">{error&&<div className="notice" role="status">{error}<button onClick={()=>setError('')}>×</button></div>}
+ {path==='overview'&&<Overview devices={devices} events={events} recommendation={recommendation} onAction={action} refreshing={load} chartData={history}/>}
+ {path==='monitoring'&&<><PageTitle eyebrow="OBSERVE / 02" title="Live monitoring" description="Real operating-system adapter telemetry. Refreshes automatically."/><Topology devices={devices}/><section className="panel"><DeviceTable devices={devices} onAction={action}/></section><div className="notice neutral">Link speed is the adapter's negotiated link capacity, not an internet speed test. Traffic rates are derived from byte-counter deltas.</div></>}
+ {path==='threats'&&<><PageTitle eyebrow="SIGNALS / 03" title="Threats & alerts" description="Operational signals and simulated faults. These are not verified security detections."/><section className="panel"><EventList events={events.filter(e=>e.severity==='warning'||e.severity==='error')}/></section></>}
+ {path==='activity'&&<><PageTitle eyebrow="AUDIT / 04" title="Activity log" description="Persistent record of account and operator actions."/><section className="panel"><EventList events={events}/></section></>}
+ {path==='manage'&&<><PageTitle eyebrow="CONTROL / 05" title="Device management" description="Request a recovery workflow or simulate an outage without changing physical adapters."/><section className="panel"><DeviceTable devices={devices} onAction={action}/></section><div className="notice neutral">Safety boundary: recovery requests are logged only. Simulation overrides affect the dashboard state only; no Windows adapter is disabled or reconfigured.</div></>}
+ {path==='rewards'&&<Rewards/>}
+ {path==='reports'&&<Reports/>}
+ {path==='account'&&<Account user={user}/>}
+ {path==='admin'&&<Admin/>}
+ {loading&&<div className="loading-line">Connecting to network telemetry…</div>}
+ <div className="data-foot">LAST SYNC: {tick?tick.toLocaleTimeString():'CONNECTING'} · SOURCE: LOCAL HOST NETWORK STACK</div></div>
+}
+
+function Topology({devices}){return <section className="panel topology-panel"><div className="panel-head"><div><span className="section-kicker">LOCAL NETWORK MAP</span><h3>Discovered interfaces</h3></div><span className="live-indicator"><i/> OS SOURCE</span></div><div className="topology-nodes"><div className="topology-hub"><b>HOST</b><small>THIS MACHINE</small></div>{devices.map(d=><div className="topology-device" key={d.id}><i className={d.status}/><b>{d.name}</b><small>{d.ip||'No IPv4 address'}</small><span className={'status status-'+d.status}>{d.status}</span></div>)}</div></section>}
+function Rewards(){const [data,setData]=useState(null),[error,setError]=useState('');useEffect(()=>{api('/api/rewards').then(setData).catch(e=>setError(e.message))},[]);return <><PageTitle eyebrow="OPERATOR PROGRAM / 06" title="Operator rewards" description="A transparent activity-based counter for recovery requests and simulation tests."/><div className="rewards-hero"><div><span className="section-kicker">CURRENT OPERATOR LEVEL</span><h2>LEVEL {data?.level??'—'}</h2><p>{data?.points??0} points earned from recorded workspace actions</p></div><div className="reward-score">{data?.points??'—'}<small>POINTS</small></div></div><div className="stats-grid"><Stat label="RECOVERY REQUESTS" value={data?.recovery_requests??'—'} meta="10 points each"/><Stat label="SIMULATION TESTS" value={data?.simulation_tests??'—'} meta="5 points each"/><Stat label="POINTS TO NEXT LEVEL" value={data?.points_to_next_level??'—'} meta="100 points per level"/><Stat label="SCORING MODEL" value="OPEN" meta="No hidden AI scoring"/></div><section className="panel"><span className="section-kicker">SCORING TRANSPARENCY</span><p className="report-meta">{data?.basis||error||'Loading activity summary…'}</p></section></>}
+
+function Reports(){const [report,setReport]=useState(null),[error,setError]=useState('');useEffect(()=>{api('/api/reports/summary').then(setReport).catch(e=>setError(e.message))},[]);return <><PageTitle eyebrow="ANALYTICS / 06" title="Operational reports" description="A point-in-time summary from live adapters and persisted event history."/><div className="stats-grid">{[['Adapters',report?.adapter_count],['Online',report?.online],['Offline',report?.offline],['Events',report?.events_total]].map(([a,b])=><Stat key={a} label={a.toUpperCase()} value={b??'—'} meta="Current report"/>)}</div><section className="panel"><div className="panel-head"><h3>Report metadata</h3></div><p className="report-meta">Generated: {report?.generated_at?new Date(report.generated_at).toLocaleString():'Loading…'}</p><p className="report-meta">Simulated adapters: {report?.simulated_adapters??'—'}</p>{error&&<div className="notice">{error}</div>}</section></>}
+function Account({user}){
+ const [currentPassword,setCurrentPassword]=useState(''),[newPassword,setNewPassword]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+ const submit=async e=>{e.preventDefault();setBusy(true);setMessage('');try{const r=await api('/auth/change-password',{method:'POST',body:JSON.stringify({current_password:currentPassword,new_password:newPassword})});setMessage(r.message);setCurrentPassword('');setNewPassword('')}catch(err){setMessage(err.message)}finally{setBusy(false)}};
+ return <><PageTitle eyebrow="IDENTITY / 07" title="Account settings" description="Your authenticated workspace identity and connection configuration."/><section className="panel account-panel"><div className="account-avatar">{user.username.slice(0,1).toUpperCase()}</div><div><h3>{user.username}</h3><p>{user.email}</p><span className="status status-online">{user.role}</span></div></section><section className="panel"><span className="section-kicker">SECURITY</span><h3>Change password</h3><form className="password-form" onSubmit={submit}><label>Current password<input type="password" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} required/></label><label>New password<input type="password" minLength="10" value={newPassword} onChange={e=>setNewPassword(e.target.value)} required/></label><button className="btn btn-lime" disabled={busy}>{busy?'Updating…':'Update password →'}</button>{message&&<p className="password-message">{message}</p>}</form></section><section className="panel"><span className="section-kicker">API CONNECTION</span><h3>Backend endpoint</h3><code className="api-code">{API}</code><p className="muted">Configure VITE_API_URL in the frontend environment to change this address.</p></section></>
+}
+function Admin(){const [users,setUsers]=useState([]),[error,setError]=useState('');useEffect(()=>{api('/admin/users').then(setUsers).catch(e=>setError(e.message))},[]);return <><PageTitle eyebrow="ADMINISTRATION" title="User administration" description="Restricted to administrator accounts."/><section className="panel">{error?<div className="notice">{error}</div>:users.map(u=><div className="event-row" key={u.id}><b>{u.username}</b><span>{u.email}</span><span className="status status-online">{u.role}</span></div>)}</section></>}
+function AppRoutes(){
+ const [user,setUser]=useState(()=>{if(!readToken())return null;try{return JSON.parse(localStorage.getItem('netmind_user')||'null')}catch{return null}});
+ useEffect(()=>{if(readToken())api('/auth/me').then(u=>{setUser(u);localStorage.setItem('netmind_user',JSON.stringify(u))}).catch(()=>{localStorage.removeItem('netmind_token');localStorage.removeItem('netmind_user');setUser(null)})},[]);
+ return <Routes><Route path="/" element={<Landing/>}/><Route path="/login" element={<AuthPage mode="login"/>}/><Route path="/register" element={<AuthPage mode="register"/>}/><Route path="/app/*" element={user?<Shell user={user}><Routes><Route path="overview" element={<Workspace user={user}/>}/><Route path="monitoring" element={<Workspace user={user}/>}/><Route path="threats" element={<Workspace user={user}/>}/><Route path="activity" element={<Workspace user={user}/>}/><Route path="manage" element={<Workspace user={user}/>}/><Route path="rewards" element={<Workspace user={user}/>}/><Route path="reports" element={<Workspace user={user}/>}/><Route path="account" element={<Workspace user={user}/>}/><Route path="admin" element={<Workspace user={user}/>}/><Route path="*" element={<Workspace user={user}/>}/></Routes></Shell>:<AuthPage mode="login"/>}/><Route path="*" element={<Landing/>}/></Routes>
+}
+export default function App(){return <AppRoutes/>}
