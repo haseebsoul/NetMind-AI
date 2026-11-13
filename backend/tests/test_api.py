@@ -80,3 +80,18 @@ def test_failure_simulation_is_non_destructive(client):
     final = next(device for device in restored if device["id"] == original["id"])
     assert final["simulated"] is False
     assert final["is_up"] == original["is_up"]
+
+def test_user_can_change_own_password(client):
+    username = "pw_" + uuid.uuid4().hex[:12]
+    email = username + "@example.test"
+    created = client.post("/auth/register", json={"username": username, "email": email, "password": "initial-password-123"})
+    assert created.status_code == 201
+    token = login(client, username, "initial-password-123")
+    changed = client.post(
+        "/auth/change-password",
+        json={"current_password": "initial-password-123", "new_password": "replacement-password-456"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert changed.status_code == 200
+    assert client.post("/auth/login", data={"username": username, "password": "initial-password-123"}).status_code == 401
+    assert client.post("/auth/login", data={"username": username, "password": "replacement-password-456"}).status_code == 200
