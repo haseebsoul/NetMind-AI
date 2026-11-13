@@ -26,12 +26,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sess
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR.parent / '.env')
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{APP_DIR / 'netmind.db'}")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 SECRET_KEY = os.getenv("NETMIND_SECRET_KEY", "dev-only-change-this-secret-before-deployment")
 if ENVIRONMENT == "production" and SECRET_KEY == "dev-only-change-this-secret-before-deployment":
     raise RuntimeError("NETMIND_SECRET_KEY must be set to a strong random value in production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "720"))
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 password_hash = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
