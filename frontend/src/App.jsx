@@ -5,7 +5,7 @@ import {z} from 'zod';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Activity,ArrowUpRight,ShieldCheck,Network,RadioTower,Server,Users,FileText,Settings,LogOut,Menu,X,Plus,Search,RefreshCw,Trash2,Edit3,CheckCircle2,AlertTriangle,ChevronRight,LockKeyhole,Globe2,Zap,Eye,Database,ChartNoAxesCombined} from 'lucide-react';
 
-const API=import.meta.env.VITE_API_URL||'http://localhost:8000/api';
+const API=import.meta.env.VITE_API_URL||'http://localhost:8001/api';
 const getToken=()=>localStorage.getItem('netmind_token')||'';
 async function request(path,options={}){const headers={...(options.body?{'Content-Type':'application/json'}:{}),...(getToken()?{Authorization:'Bearer '+getToken()}:{}),...(options.headers||{})};const res=await fetch(API+path,{...options,headers});const data=await res.json().catch(()=>({message:'Unexpected server response'}));if(!res.ok)throw new Error(data.message||data.detail||'Request failed');return data;}
 function Brand(){return <Link className="brand" to="/"><span className="brand-symbol">N</span><span>NETMIND<span className="brand-accent"> AI</span><small>NETWORK INTELLIGENCE</small></span></Link>}
