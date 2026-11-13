@@ -333,6 +333,17 @@ def reports(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
             "events_total": len(rows), "simulated_adapters": sum(d["simulated"] for d in devices)}
 
 
+@app.get("/api/rewards")
+def rewards(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.scalars(select(Activity)).all()
+    recoveries = sum(r.event == "adapter.recovery_requested" for r in rows)
+    simulations = sum(r.event == "simulation.adapter_offline" for r in rows)
+    points = recoveries * 10 + simulations * 5
+    level = points // 100 + 1
+    return {"points": points, "level": level, "points_to_next_level": 100 - (points % 100),
+            "recovery_requests": recoveries, "simulation_tests": simulations,
+            "basis": "10 points per logged recovery request and 5 points per logged simulation test. This is a transparent activity counter, not an AI score or performance certification."}
+
 @app.get("/admin/users", response_model=list[UserOutput])
 def admin_users(_: User = Depends(require_admin), db: Session = Depends(get_db)):
     return db.scalars(select(User).order_by(User.created_at.desc())).all()
