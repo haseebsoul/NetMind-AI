@@ -89,6 +89,11 @@ class TokenOutput(BaseModel):
     expires_in: int
 
 
+class PasswordChangeInput(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=10, max_length=128)
+
+
 class HealInput(BaseModel):
     note: str | None = Field(default=None, max_length=300)
 
@@ -258,6 +263,17 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 @app.get("/auth/me", response_model=UserOutput)
 def me(user: User = Depends(get_current_user)):
     return user
+
+
+@app.post("/auth/change-password")
+def change_password(payload: PasswordChangeInput, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not password_hash.verify(payload.current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.hashed_password = password_hash.hash(payload.new_password)
+    db.add(user)
+    db.commit()
+    log_event(db, "user.password_changed", f"Password changed for {user.username}", actor=user.username)
+    return {"status": "success", "message": "Password updated successfully."}
 
 
 @app.get("/devices")
