@@ -5,7 +5,7 @@ NetMind AI is a React 18 + Vite network operations workspace with a five-part pr
 ## Stack
 - Frontend: React, React DOM, Vite, React Router, React Hook Form, Zod, Lucide icons.
 - Backend: Node.js, Express, Mongoose, Zod, bcrypt, JWT, Helmet, CORS and rate limiting.
-- Database: MongoDB Atlas database `netmind_ai`; collections `users`, `assets`, `incidents`, `policies`, `auditlogs` (Mongoose model default naming may pluralize model names; the pre-created `audit_logs` collection is reserved for future explicit mapping).
+- Database: MongoDB Atlas database `netmind_ai`; collections `users`, `assets`, `incidents`, `policies`, `audit_logs` (explicitly mapped in the Mongoose model).
 
 ## Run locally (Windows PowerShell)
 1. Create a MongoDB Atlas database user with readWrite on `netmind_ai`, and add your IP under Atlas Network Access.
@@ -40,6 +40,8 @@ Permissions are enforced in the API, not only hidden in the React sidebar. Publi
 - `GET/POST/PATCH/DELETE /api/policies`
 - `GET/POST/PATCH/DELETE /api/users` (admin only)
 - `GET /api/dashboard`, `GET /api/audit-logs`, `GET /api/health`
+
+The former FastAPI implementation remains under `backend/app/` as legacy reference code; the active Docker/API runtime is the Node service under `backend/src/`.
 
 ## Operational truth
 This application provides network operations inventory and workflows. It does not claim to detect confirmed intrusions or automatically repair physical network adapters. The current incident records are operator-managed; do not treat them as verified threat intelligence.
