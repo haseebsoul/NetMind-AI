@@ -60,3 +60,23 @@ def test_websocket_requires_token_and_streams_devices(client):
         payload = websocket.receive_json()
         assert payload["type"] == "devices"
         assert isinstance(payload["devices"], list)
+
+def test_failure_simulation_is_non_destructive(client):
+    token = login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+    devices = client.get("/devices", headers=headers).json()
+    if not devices:
+        pytest.skip("No network adapters are exposed by the test runner")
+    original = devices[0]
+    simulated = client.post(f"/simulate/failure/{original['id']}", headers=headers)
+    assert simulated.status_code == 200
+    after = client.get("/devices", headers=headers).json()
+    changed = next(device for device in after if device["id"] == original["id"])
+    assert changed["simulated"] is True
+    assert changed["is_up"] == original["is_up"]
+    reset = client.post(f"/simulate/reset/{original['id']}", headers=headers)
+    assert reset.status_code == 200
+    restored = client.get("/devices", headers=headers).json()
+    final = next(device for device in restored if device["id"] == original["id"])
+    assert final["simulated"] is False
+    assert final["is_up"] == original["is_up"]
