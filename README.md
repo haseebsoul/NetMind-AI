@@ -1,71 +1,45 @@
 # NetMind AI
 
-NetMind AI is a React + Vite operator console backed by FastAPI. It provides a public product landing page, authenticated workspace, live local network-adapter telemetry, persistent activity history, and safe simulation workflows.
+NetMind AI is a React 18 + Vite network operations workspace with a five-part product landing page, JWT authentication, Zod form validation, role-based dashboards, and a Node.js/Express API backed by MongoDB Atlas.
 
-## Project structure
+## Stack
+- Frontend: React, React DOM, Vite, React Router, React Hook Form, Zod, Lucide icons.
+- Backend: Node.js, Express, Mongoose, Zod, bcrypt, JWT, Helmet, CORS and rate limiting.
+- Database: MongoDB Atlas database `netmind_ai`; collections `users`, `assets`, `incidents`, `policies`, `auditlogs` (Mongoose model default naming may pluralize model names; the pre-created `audit_logs` collection is reserved for future explicit mapping).
 
-- `frontend/` — React 18, Vite, React Router, Recharts and Framer Motion.
-- `backend/app/main.py` — FastAPI service, JWT authentication, SQLAlchemy persistence, psutil adapter discovery and WebSocket telemetry.
-- `backend/tests/` — API and authentication tests.
-
-## Run locally
-
-### 1. Backend
-
-Python 3.10+ recommended.
-
-```bash
+## Run locally (Windows PowerShell)
+1. Create a MongoDB Atlas database user with readWrite on `netmind_ai`, and add your IP under Atlas Network Access.
+2. Copy root `.env.example` to `.env`. Replace the Atlas password and set a unique JWT secret and bootstrap admin password.
+3. Start the API:
+```powershell
 cd backend
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-# Optional: copy .env.example to .env and set values in your shell
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-The API creates a local SQLite database on first start. In development it seeds the bootstrap administrator from environment variables (defaults: `haseeb` / `1234`). Change these credentials and set a strong `NETMIND_SECRET_KEY` before exposing the service.
-
-### 2. Frontend
-
-```bash
-cd frontend
 npm install
-# optional: create .env with VITE_API_URL=http://localhost:8000
 npm run dev
 ```
+4. In a second terminal:
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+5. Open http://localhost:5173. API health: http://localhost:8000/api/health.
 
-Open http://localhost:5173. API docs are at http://127.0.0.1:8000/docs.
+The first backend startup creates the administrator specified by BOOTSTRAP_ADMIN_* only if that username/email does not already exist. Keep the root .env private. Never paste credentials into source files or commit them.
 
-## API
+## Stakeholder permissions
+- **Admin:** full user administration and create/read/update/delete permissions across users, assets, incidents and policies.
+- **Analyst:** read/create/update assets, incidents and policies; read audit history; no destructive deletes or user administration.
+- **Viewer:** read-only access to dashboard, assets, incidents and policies.
 
-- `POST /auth/register` — create a standard user account.
-- `POST /auth/login` — OAuth2 password form; returns a JWT.
-- `GET /auth/me` — authenticated identity.
-- `POST /auth/change-password` — verify the current password and set a new password.
-- `GET /devices` — current OS network interfaces and byte counters.
-- `GET /ai/recommend` — transparent rule-based link-speed observation.
-- `POST /heal/{id}` — records a recovery request; does not alter OS adapters.
-- `POST /simulate/failure/{id}` — dashboard-only offline simulation.
-- `POST /simulate/reset/{id}` — clear a simulation override.
-- `GET /api/activity`, `GET /api/reports/summary` — user-scoped persisted event history and summary.
-- `GET /api/rewards` — transparent activity-based operator points (10 per recovery request, 5 per simulation test).
-- `GET /admin/users` — administrator-only user listing.
-- `WS /ws?token=<JWT>` — authenticated device telemetry stream (2-second interval).
+Permissions are enforced in the API, not only hidden in the React sidebar. Public registration only allows Analyst or Viewer. Administrator bootstrap is environment-controlled.
 
-## Safety and operational boundaries
+## Main API
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- `GET/POST/PATCH/DELETE /api/assets`
+- `GET/POST/PATCH/DELETE /api/incidents`
+- `GET/POST/PATCH/DELETE /api/policies`
+- `GET/POST/PATCH/DELETE /api/users` (admin only)
+- `GET /api/dashboard`, `GET /api/audit-logs`, `GET /api/health`
 
-Network adapter telemetry is read from the host running the backend. The dashboard's simulation endpoints only affect an in-memory display override and never disable or reconfigure a physical interface. Recovery requests are audit events, not privileged repair operations. The recommendation endpoint uses reported adapter link speed; it is not an internet speed test or a machine-learning model. Threats and alerts are operational event signals, not verified intrusion detection.
-
-## Production checklist
-
-- Set `ENVIRONMENT=production`, a cryptographically random `NETMIND_SECRET_KEY`, and non-default bootstrap credentials.
-- Restrict `CORS_ORIGINS` to the deployed frontend origin.
-- Use PostgreSQL via `DATABASE_URL` for multi-worker or production deployments.
-- Terminate TLS at a trusted reverse proxy; use HTTPS/WSS.
-- Add rate limiting, account recovery, password policy and a managed secrets store before public multi-tenant deployment.
-- Run tests with `cd backend && pytest`; build frontend with `cd frontend && npm ci && npm run build`.
-
-## Important
-
-This project is a local network operations dashboard, not a certified security product. It does not perform packet inspection, attack detection, or autonomous hardware remediation.
+## Operational truth
+This application provides network operations inventory and workflows. It does not claim to detect confirmed intrusions or automatically repair physical network adapters. The current incident records are operator-managed; do not treat them as verified threat intelligence.
