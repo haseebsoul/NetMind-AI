@@ -47,7 +47,8 @@ Open http://localhost:5173. API docs are at http://127.0.0.1:8000/docs.
 - `POST /heal/{id}` — records a recovery request; does not alter OS adapters.
 - `POST /simulate/failure/{id}` — dashboard-only offline simulation.
 - `POST /simulate/reset/{id}` — clear a simulation override.
-- `GET /api/activity`, `GET /api/reports/summary` — persisted event history and summary.
+- `GET /api/activity`, `GET /api/reports/summary` — user-scoped persisted event history and summary.
+- `GET /api/rewards` — transparent activity-based operator points (10 per recovery request, 5 per simulation test).
 - `GET /admin/users` — administrator-only user listing.
 - `WS /ws?token=<JWT>` — authenticated device telemetry stream (2-second interval).
 
